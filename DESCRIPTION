@@ -1,0 +1,24 @@
+Package: PfRecur
+Title: Probabilistic classification of Plasmodium falciparum recurrences
+Version: 0.0.0.9000
+Authors@R: 
+    c(person("Somya", "Mehra", email="somya@tropmedres.ac", role = c("aut", "cre")),
+    person("Aimee", "Taylor", role = c("cph")),
+    person("Mallika", "Imwong", role = c("cph")),
+    person("Nicholas", "White", role = c("cph")),
+    person("James", "Watson", role = c("cph")))
+Description: Computes the (analytical) posterior distribution of the number of 
+  recrudescent vs newly-inoculated clones within a recurrent isolate, based
+  on bulk genotypic data, under a Bayesian framework.
+License: use_mit_license()
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Depends: 
+    R (>= 2.10)
+    dplyr
+    copula
+    PDQutils
+    poisbinom
+    VGAM
+    
