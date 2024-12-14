@@ -1,12 +1,15 @@
-#' Prior disrtibution
+#' Prior distribution
 #'
 #' This function computes the prior distribution of recrudescent (vs
-#' newly-inoculated) clones within a recurrent isolate
+#' newly-inoculated) clones within a recurrent isolate (symmemetric
+#' beta binomial)
 #'
 #' @param n_C Number of recrudescent clones
 #' @param recurrent_MOI MOI of recurrent isolate
-prior_mixture <- function(n_C, recurrent_MOI) {
-  VGAM::dbetabinom.ab(n_C, recurrent_MOI, shape1=0.25, shape2=0.25)
+#' @param beta Shape parameter (in the range (0, 1]) for the symmetric beta binomial
+#' prior (with support 0 to recurrent_MOI)
+prior_mixture <- function(n_C, recurrent_MOI, beta) {
+  VGAM::dbetabinom.ab(n_C, recurrent_MOI, shape1=beta, shape2=beta)
 }
 
 #' Posterior summary
@@ -31,10 +34,12 @@ prior_mixture <- function(n_C, recurrent_MOI) {
 #' matrix (with row and column names corresponding to alleles at a given marker),
 #' where element (i,j) yields the probability that an allele called as i in a
 #' baseline isolate matches an allele called as j in the recurrent isolate at that marker
-#' @param omega_vals Vector of values for omega, governing the locus-wise per-clone
+#' @param omega_vals Vector of values for omega (in the range (0, 1]), governing the locus-wise per-clone
 #' probability of detection (applied to the paired baseline and recurrent isolates only)
+#' @param beta Shape parameter (in the range (0, 1]) for the symmetric beta binomial prior(with support 0 to
+#' recurrent_MOI) for the number of recrudescent clones in the recurrent isolate
 #' @param keep_markers Set to "all" (by default) to calculate the posterior over
-#' all markers; otherwise, a vector of marrkers (strings) over which to calculate
+#' all markers; otherwise, a vector of markers (strings) over which to calculate
 #' the posterior
 #' @return A list of two elements: element "posterior" is a data frame for the
 #' posterior distribution (posterior) of newly-inoculated (n_I) vs recrudescent (n_C)
@@ -44,10 +49,47 @@ prior_mixture <- function(n_C, recurrent_MOI) {
 #' clone (M1) and the expected proprtion of recrudescent clones (M2) stratified by omega
 #' @export
 evaluate_posterior <- function(recurrent_isolate, ref_C, ref_I, genotype_matrix,
-                               error_matrix, omega_vals=seq(0.75, 1, 0.05), keep_markers="all") {
+                               error_matrix, omega_vals=seq(0.75, 1, 0.05), beta, keep_markers="all") {
+
+  if (beta<=0 | beta>1) stop("beta must lie in the range (0, 1]")
+
+  if (any(omega_vals<=0) | any(omega_vals>1)) stop("omega must lie in the range (0, 1]")
+
+
+  if (is.null(names(genotype_matrix)) | !is.list(genotype_matrix) |
+      !all(sapply(genotype_matrix, is.matrix)) |
+      !all(sapply(genotype_matrix, function(x) !is.null(rownames(x)))) |
+      !all(sapply(genotype_matrix, function(x) !is.null(colnames(x)))) |
+      !all(sapply(genotype_matrix, function(x) all(x==0 | x==1)))) {
+    stop("genotype_matrix must be a named list of binary (0/1) matrices")
+  }
+
+  if (is.null(names(error_matrix)) | !is.list(error_matrix) |
+      !all(sapply(error_matrix, is.matrix)) |
+      !all(sapply(error_matrix, function(x) !is.null(rownames(x)))) |
+      !all(sapply(error_matrix, function(x) !is.null(colnames(x)))) |
+      !all(sapply(error_matrix, function(x) all(x>=0))) |
+      !all(sapply(error_matrix, function(x) all(sort(rownames(x))==sort(colnames(x))))) |
+      !all(round(unlist(sapply(error_matrix, rowSums, simplify = FALSE)), 5)==1)) {
+    stop("error_matrix must be a named list of square row stochastic matrices (i.e. non-negative entries, row sums 1)")
+  }
+
+  if (!all(names(genotype_matrix) %in% names(error_matrix))) {
+    stop("genotype_matrix contains markers than are not present in error_matrix")
+  }
+
+  if (!all(mapply(function(x, y) all(sort(x)==sort(y)),
+                  lapply(genotype_matrix[keep_markers], colnames),
+                  lapply(error_matrix[keep_markers], rownames)))) {
+    stop("genotype_matrix contains alleles (at one or more marker) that are not present in error_matrix")
+  }
 
   if (length(keep_markers)==1) {
     if (keep_markers=="all") keep_markers <- names(genotype_matrix)
+  }
+
+  if (!all(keep_markers %in% names(genotype_matrix))) {
+    stop("keep_markers contains markers that are not present in genotype_matrix")
   }
 
   # ignore missing markers
@@ -79,15 +121,13 @@ evaluate_posterior <- function(recurrent_isolate, ref_C, ref_I, genotype_matrix,
   ref_C_MOI <- max(sapply(ref_C_genotypes, rowSums))
 
   if (recurrent_MOI>9 | ref_C_MOI>9 | any(ref_I_MOI>9)) {
-    print("All isolate MOIs must be 9 or fewer")
-    return(NULL)
+    stop("All isolate MOIs must be 9 or fewer")
   }
 
   if (min(sapply(ref_C_genotypes, function(x) min(rowSums(x))))==0 |
       min(sapply(ref_I_genotypes, function(x) min(rowSums(x))))==0 |
       min(sapply(recurrent_alleles, length))==0) {
-    print("Every row of the marker-wise genotyping matrix must have at least one non-zero entry")
-    return(NULL)
+    stop("Every row of the marker-wise genotyping matrix must have at least one non-zero entry")
   }
 
   posterior_distribution <- lapply(keep_markers, function(m)
@@ -97,7 +137,7 @@ evaluate_posterior <- function(recurrent_isolate, ref_C, ref_I, genotype_matrix,
     bind_rows(.id="marker") %>%
     group_by(omega, n_I, n_C) %>%
     summarise(lhood=prod(lhood)) %>%
-    mutate(prior=prior_mixture(n_C, recurrent_MOI), prob=lhood*prior) %>%
+    mutate(prior=prior_mixture(n_C, recurrent_MOI, beta), prob=lhood*prior) %>%
     split(f=.$omega) %>% lapply(function(x) {
       x$posterior=x$prob/sum(x$prob); return(x)}) %>%
     bind_rows() %>% select(omega, n_I, n_C, posterior) %>%

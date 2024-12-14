@@ -11,6 +11,7 @@ evaluate_posterior(
   genotype_matrix,
   error_matrix,
   omega_vals = seq(0.75, 1, 0.05),
+  beta,
   keep_markers = "all"
 )
 }
@@ -39,8 +40,11 @@ baseline isolate matches an allele called as j in the recurrent isolate at that 
 \item{omega_vals}{Vector of values for omega, governing the locus-wise per-clone
 probability of detection (applied to the paired baseline and recurrent isolates only)}
 
+\item{beta}{Shape parameter for the symmetric beta binomial prior(with support 0 to
+recurrent_MOI) for the number of recrudescent clones in the recurrent isolate}
+
 \item{keep_markers}{Set to "all" (by default) to calculate the posterior over
-all markers; otherwise, a vector of marrkers (strings) over which to calculate
+all markers; otherwise, a vector of markers (strings) over which to calculate
 the posterior}
 }
 \value{
@@ -53,5 +57,6 @@ clone (M1) and the expected proprtion of recrudescent clones (M2) stratified by 
 }
 \description{
 This function computes the posterior distribution of recrudescent vs
-newly-inoculated clones within a recurrent isolate
+newly-inoculated clones within a recurrent isolate, handling isolates
+with MOI 9 and fewer
 }

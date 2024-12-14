@@ -1,0 +1,91 @@
+---
+title: "Example data "
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Angola_TES_example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(PfRecur)
+library(parallel)
+library(purrr)
+```
+
+Here, we demonstrate the application of *PfRecur* to an example dataset.
+
+**Reference**: Dimbu PR, Labuda S, Ferreira CM, Caquece F, André K, Pembele G, Pode D, João MF, Pelenda VM, Nieto Andrade B, Horton B. Therapeutic response to four artemisinin-based combination therapies in Angola, 2021. Antimicrobial Agents and Chemotherapy. 2024 Apr 3;68(4):e01525-23.
+
+## Example: data from a TES in Angola conducted by Dimbu et al (2024)
+
+We consider genotypic data from a TES in Angola conducted by [Dimbu et al (2024)](https://doi.org/10.1128/aac.01525-23). We have parsed genotypic data (from Supplemental Table S3) into `Angola_TES_genotype_matrix`, a list of binary (0/1) matrices where list names correspond to markers; matrix column names correspond to alleles; matrix row names corespond to isolates and matrix elements are set to 1 if the relevant allele is detected in a given isolate at that marker, and zero otherwise. For instance, at marker `M313`, for isolate `BP21-237D28`, the alleles `218` and `240` have been detected.
+
+```{r genotype_example}
+Angola_TES_genotype_matrix[["M313"]]["BP21-237D28",]
+```
+
+We have also delineated the grouping of isolates genotyped by Dimbu et al (2024) in the list `Angola_TES_isolates`. Each element of `Angola_TES_isolates` is itself a list, where the entry *recurrent* contains the identifier of the recurrent isolates; *ref_C* contains the identifier for the baseline isolate paired to the recurrent isolate; and *ref_I* is a vector of identifiers for baseline isolates that are not paired to the recurrent isolate, but from the same study site (and will therefore be used to derive allele frequencies for newly-inoculated clones in the recurrent isolate). For example:
+
+```{r isolate_grouping_example}
+Angola_TES_isolates[[1]]
+```
+
+## Genotyping error
+
+Genotyping error under the *PfRecur* recur framework is non-parametric and user-specified.
+
+The study conducted by Dimbu et al (2024) used length polymorphic markers with integer lengths. To account for length-dependent genotyping error, we generate a normalised geometric error model, parametrised by the genotyping error rate `EPSILON` (in the range (0, 1]). The probability of mis-identification between alleles is assumed to have a geometric dependence on the allele length difference, normalised to yield a genotyping error probability of `EPSILON`; while the probability of correct identification is set to `1-EPSILON`. We generate this error model, taking the form of a named marker-wise list of row stochastic matrices, using the function `geometric_error_matrix`.
+
+```{r error_matrix}
+Angola_TES_marker_set <- lapply(Angola_TES_genotype_matrix, colnames)
+
+my_error_matrix <- geometric_error_matrix(Angola_TES_marker_set, EPSILON=0.05)
+```
+
+The function `geometric_error_matrix` necessarily requires the vector of possible alleles at each marker (encoded marker-wise in the list `Angola_TES_marker_set`) to contain strings encoding integers.
+
+Different error models may be required for other marker types. An alternative error model, which is likewise parametrised by the genotyping error rate `EPSILON` but instead distributes the probability of mis-identification uniformly over all possible alleles at that marker, is provided by the function `uniform_error_matrix`.
+
+## Posterior summary
+
+The function `evaluate_posterior` can be used to generate a posterior summary for the number of newly-inoculated vs recrudescent clones within a recurrent isolate. This requires genotypes (argument `genotype_matrix`) to be encoded in the form of `Angola_TES_genotype_matrix`, as well as the identifier of the recurrent isolate `recurrent`; the identifier of the baseline isolate `ref_C` paired to the recurrent isolate; and a vector of identifiers `ref_I` for baseline isolates that are not paired to the recurrent isolate but from the same study site (and will therefore be used to derive allele frequencies for newly-inoculated clones in the recurrent isolate). 
+
+There are three additional user-specified quantities: a genotyping error matrix `error_matrix`; a vector of values `omega_vals` (in the range (0, 1]) for the per-clone marker-wise probability of detection (applied to clones in the paired baseline/recurrent isolates only); and the shape parameter `beta` (in the range (0, 1]) for the symmetric beta binomial prior governing the number of newly-inoculated vs reinfected clones.
+
+By default, the flag `keep_markers="all"` means that the posterior will be evaluated using data across all available markers. The posterior can be evaluaed over a subset of markers by setting `keep_markers` to a vector of marker names. 
+
+The output of the function `evaluate_posterior` is a named list of two elements. Element `posterior` is a data frame, detailing the posterior probability (*posterior*) that the recurrent isolate (*recurrence*) comprises *n_I* newly-inoculated and *n_C* recrudescent clones, given a particular value (*omega*) for the per-clone marker-wise probability of detection. Note that *n_I+n_C* is necessarily equal to the observed MOI of the recurrent isolate (given by the maximum observed cardinality across markers over which the posterior is evaluated). Element `metrics` contains two posterior summary metrics, namely the posterior probability of at least one recrudescent clone (*M1*) and the posterior expected proportion of recrudescent clones (*M2*), likewise stratified by *omega*.
+
+```{r example_posterior}
+evaluate_posterior(recurrent = Angola_TES_isolates[[4]][["recurrent"]], 
+                   ref_C = Angola_TES_isolates[[4]][["ref_C"]], 
+                   ref_I = Angola_TES_isolates[[4]][["ref_I"]], 
+                   genotype_matrix = Angola_TES_genotype_matrix, 
+                   error_matrix = my_error_matrix, 
+                   omega_vals=seq(0.75, 1, 0.05), 
+                   beta=0.25, 
+                   keep_markers="all")
+```
+
+By encoding isolate groupings in the form `Angola_TES_isolates`, evaluation of the posterior can readily be parallelised over multiple recurrent isolates.
+
+```{r parallelised_posterior}
+parallel::mclapply(Angola_TES_isolates, function(x) 
+  evaluate_posterior(recurrent = x[["recurrent"]], 
+                     ref_C = x[["ref_C"]], 
+                     ref_I = x[["ref_I"]], 
+                     genotype_matrix = Angola_TES_genotype_matrix, 
+                     error_matrix = my_error_matrix, 
+                     omega_vals=0.9, 
+                     beta=0.25, 
+                     keep_markers="all")) %>% 
+  purrr::pmap(rbind)
+```

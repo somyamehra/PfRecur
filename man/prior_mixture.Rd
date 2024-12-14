@@ -2,16 +2,19 @@
 % Please edit documentation in R/evaluate_posterior.R
 \name{prior_mixture}
 \alias{prior_mixture}
-\title{Prior disrtibution}
+\title{Prior distribution}
 \usage{
-prior_mixture(n_C, recurrent_MOI)
+prior_mixture(n_C, recurrent_MOI, beta)
 }
 \arguments{
 \item{n_C}{Number of recrudescent clones}
 
 \item{recurrent_MOI}{MOI of recurrent isolate}
+
+\item{beta}{Shape parameter for the symmetric beta binomial prior (with support 0 to recurrent_MOI)}
 }
 \description{
 This function computes the prior distribution of recrudescent (vs
-newly-inoculated) clones within a recurrent isolate
+newly-inoculated) clones within a recurrent isolate (symmemetric
+beta binomial)
 }
