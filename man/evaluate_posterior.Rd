@@ -37,10 +37,10 @@ matrix (with row and column names corresponding to alleles at a given marker),
 where element (i,j) yields the probability that an allele called as i in a
 baseline isolate matches an allele called as j in the recurrent isolate at that marker}
 
-\item{omega_vals}{Vector of values for omega, governing the locus-wise per-clone
+\item{omega_vals}{Vector of values for omega (in the range (0, 1]), governing the locus-wise per-clone
 probability of detection (applied to the paired baseline and recurrent isolates only)}
 
-\item{beta}{Shape parameter for the symmetric beta binomial prior(with support 0 to
+\item{beta}{Shape parameter (in the range (0, 1]) for the symmetric beta binomial prior(with support 0 to
 recurrent_MOI) for the number of recrudescent clones in the recurrent isolate}
 
 \item{keep_markers}{Set to "all" (by default) to calculate the posterior over

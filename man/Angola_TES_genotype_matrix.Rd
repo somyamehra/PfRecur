@@ -11,7 +11,7 @@ correspond to alleles; and matrix elements are set to 1 if the relevant allele
 is called in a given isolate at that marker, and zero otherwise.
 }
 \source{
-\url{https://doi.org/10.1128/aac.01525-23}
+\url{https://github.com/MateuszPlucinski/AngolaTES2021}
 }
 \usage{
 Angola_TES_genotype_matrix
@@ -23,7 +23,6 @@ across 3 study sites (Benguela, Lunda Sul and Zaire) in a TES conducted
 in Angola by Dimbu et al (2024)
 }
 \details{
-A parsed version of Supplemental Table S3 from the paper:
 Dimbu PR, Labuda S, Ferreira CM, Caquece F, André K, Pembele G, Pode D, João MF,
 Pelenda VM, Nieto Andrade B, Horton B. Therapeutic response to four artemisinin-based
 combination therapies in Angola, 2021. Antimicrobial Agents and Chemotherapy.

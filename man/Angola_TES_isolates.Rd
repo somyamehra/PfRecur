@@ -15,7 +15,7 @@ to the recurrent isolate, but from the same study site}
 }
 }
 \source{
-\url{https://doi.org/10.1128/aac.01525-23}
+\url{https://github.com/MateuszPlucinski/AngolaTES2021}
 }
 \usage{
 Angola_TES_isolates
@@ -29,7 +29,6 @@ but the same study site) that are used to derive allele frequencies for
 newly-inoculated clones
 }
 \details{
-Derived from Supplemental Table S3 of the paper:
 Dimbu PR, Labuda S, Ferreira CM, Caquece F, André K, Pembele G, Pode D, João MF,
 Pelenda VM, Nieto Andrade B, Horton B. Therapeutic response to four artemisinin-based
 combination therapies in Angola, 2021. Antimicrobial Agents and Chemotherapy.

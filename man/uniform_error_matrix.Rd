@@ -10,7 +10,7 @@ uniform_error_matrix(marker_set, EPSILON)
 \item{marker_set}{A named marker-wise list of vectors, listing all possible
 alleles (strings) at each marker}
 
-\item{EPSILON}{Genotyping error rate}
+\item{EPSILON}{Genotyping error rate (in the range \link{0, 1})}
 }
 \value{
 A named marker-wise list of row stochastic matrices (with row and column names

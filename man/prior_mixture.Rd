@@ -11,7 +11,8 @@ prior_mixture(n_C, recurrent_MOI, beta)
 
 \item{recurrent_MOI}{MOI of recurrent isolate}
 
-\item{beta}{Shape parameter for the symmetric beta binomial prior (with support 0 to recurrent_MOI)}
+\item{beta}{Shape parameter (in the range (0, 1]) for the symmetric beta binomial
+prior (with support 0 to recurrent_MOI)}
 }
 \description{
 This function computes the prior distribution of recrudescent (vs

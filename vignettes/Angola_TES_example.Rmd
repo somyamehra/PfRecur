@@ -1,5 +1,5 @@
 ---
-title: "Example data "
+title: "Example data"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Angola_TES_example}
@@ -24,9 +24,12 @@ Here, we demonstrate the application of *PfRecur* to an example dataset.
 
 **Reference**: Dimbu PR, Labuda S, Ferreira CM, Caquece F, André K, Pembele G, Pode D, João MF, Pelenda VM, Nieto Andrade B, Horton B. Therapeutic response to four artemisinin-based combination therapies in Angola, 2021. Antimicrobial Agents and Chemotherapy. 2024 Apr 3;68(4):e01525-23.
 
+**Link to data**: https://github.com/MateuszPlucinski/AngolaTES2021
+
+
 ## Example: data from a TES in Angola conducted by Dimbu et al (2024)
 
-We consider genotypic data from a TES in Angola conducted by [Dimbu et al (2024)](https://doi.org/10.1128/aac.01525-23). We have parsed genotypic data (from Supplemental Table S3) into `Angola_TES_genotype_matrix`, a list of binary (0/1) matrices where list names correspond to markers; matrix column names correspond to alleles; matrix row names corespond to isolates and matrix elements are set to 1 if the relevant allele is detected in a given isolate at that marker, and zero otherwise. For instance, at marker `M313`, for isolate `BP21-237D28`, the alleles `218` and `240` have been detected.
+We consider genotypic data from a TES in Angola conducted by [Dimbu et al (2024)](https://doi.org/10.1128/aac.01525-23). We have parsed genotypic data from an accompanying [GitHub repository](https://github.com/MateuszPlucinski/AngolaTES2021) into `Angola_TES_genotype_matrix`, a list of binary (0/1) matrices where list names correspond to markers; matrix column names correspond to alleles; matrix row names corespond to isolates and matrix elements are set to 1 if the relevant allele is detected in a given isolate at that marker, and zero otherwise. For instance, at marker `M313`, for isolate `BP21-237D28`, the alleles `218` and `240` have been detected.
 
 ```{r genotype_example}
 Angola_TES_genotype_matrix[["M313"]]["BP21-237D28",]
