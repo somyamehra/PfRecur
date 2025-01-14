@@ -6,4 +6,6 @@ Mehra S, Taylor AR, Imwong M, White NJ, Watson JA. Probabilistic classification 
 
 The main function `PfRecur:: evaluate_posterior` can be used to generate a posterior summary for the number of newly-inoculated vs recrudescent clones within a recurrent *P. falciparum* infection based on bulk genotypic data, with user-defined parameters governing genotyping error and the detectability of individual clones.
 
+The package largely relies on base R functionality, with external dependencies on the functions `copula::Stirling2`, `copula::Stirling1`, `PDQutils::cumulant2moment`, `PDQutils::moment2cumulant`, `poisbinom::dpoisbinom` and `VGAM::dbetabinom.ab`.
+
 Please refer to the vignette for an application to genotypic data from a recent study conducted by [Dimbu et al (2024)](https://doi.org/10.1128/aac.01525-23).
