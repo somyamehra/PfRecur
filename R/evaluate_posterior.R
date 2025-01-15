@@ -29,7 +29,9 @@ prior_mixture <- function(n_C, recurrent_MOI, beta) {
 #' correspond to alleles; and matrix elements are set to 1 if the relevant allele
 #' is called in a given isolate, and zero otherwise. Every row must have sum at
 #' least one; isolates with no alleles called at a given marker are dropped from the
-#' genotype matrix for the relevant marker.
+#' genotype matrix for the relevant marker. Note that the prior distribution of
+#' allele frequencies for newly-inoculated clones is taken to be uniform over the
+#' set of possible alleles present in each marker-wise genotype matrix.
 #' @param error_matrix Named marker-wise list where each element is a row stochastic
 #' matrix (with row and column names corresponding to alleles at a given marker),
 #' where element (i,j) yields the probability that an allele called as i in a
